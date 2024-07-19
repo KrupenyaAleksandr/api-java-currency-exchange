@@ -39,7 +39,7 @@ public class DatabaseEngine {
                 try (ResultSet rs = st.executeQuery("SELECT * FROM currencies")) {
                     resultList = new ArrayList<>();
                     while (rs.next()) {
-                        resultList.add(new Currency(Integer.valueOf(rs.getString(1)),
+                        resultList.add(new Currency(Long.valueOf(rs.getString(1)),
                                 rs.getString(2),
                                 rs.getString(3),
                                 rs.getString(4)));

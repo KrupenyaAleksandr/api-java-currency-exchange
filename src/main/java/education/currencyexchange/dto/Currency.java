@@ -1,24 +1,39 @@
 package education.currencyexchange.dto;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class Currency {
 
-    private Integer id;
+    private Long id;
     private String code;
-    private String name;
+    private String fullName;
     private String sign;
 
     public Currency() {};
 
-    public Currency(Integer id, String code, String name, String sign) {
+    public Currency(Long id, String code, String fullName, String sign) {
         this.id = id;
         this.code = code;
-        this.name = name;
+        this.fullName = fullName;
         this.sign = sign;
     }
 
-    public Integer getId() {
+    public Currency(ResultSet resultSet) throws SQLException {
+        try {
+            this.id = resultSet.getLong("id");
+            this.code = resultSet.getString("code");
+            this.fullName = resultSet.getString("full_name");
+            this.sign = resultSet.getString("sign");
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Currency create SQLExcpetion");
+        }
+    }
+
+    public Long getId() {
         return id;
     }
 
@@ -26,15 +41,15 @@ public class Currency {
         return code;
     }
 
-    public String getName() {
-        return name;
+    public String getFullName() {
+        return fullName;
     }
 
     public String getSign() {
         return sign;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -42,8 +57,8 @@ public class Currency {
         this.code = code;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public void setSign(String sign) {
@@ -57,13 +72,13 @@ public class Currency {
         Currency currency = (Currency) o;
         return Objects.equals(id, currency.id)
                 && Objects.equals(code, currency.code)
-                && Objects.equals(name, currency.name)
+                && Objects.equals(fullName, currency.fullName)
                 && Objects.equals(sign, currency.sign);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, name, sign);
+        return Objects.hash(id, code, fullName, sign);
     }
 
     @Override
@@ -74,7 +89,7 @@ public class Currency {
                 .append(this.id)
                 .append(",\n")
                 .append("\"name\": ")
-                .append(this.name)
+                .append(this.fullName)
                 .append(",\n")
                 .append("\"code\": ")
                 .append(this.code)
