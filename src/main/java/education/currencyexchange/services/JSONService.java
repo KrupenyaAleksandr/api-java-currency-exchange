@@ -1,6 +1,6 @@
 package education.currencyexchange.services;
 
-import education.currencyexchange.dto.Currency;
+import education.currencyexchange.models.Currency;
 
 import java.util.List;
 

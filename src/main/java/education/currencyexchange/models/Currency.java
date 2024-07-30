@@ -1,14 +1,19 @@
-package education.currencyexchange.dto;
+package education.currencyexchange.models;
 
+import javax.validation.constraints.NotNull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Objects;
 
 public class Currency {
 
     private Long id;
+    @NotNull
     private String code;
+    @NotNull
     private String fullName;
+    @NotNull
     private String sign;
 
     public Currency() {};
@@ -29,8 +34,14 @@ public class Currency {
         }
         catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("Currency create SQLExcpetion");
+            throw new SQLException("Currency create SQLException");
         }
+    }
+
+    public Currency(HashMap<String, String> currencyMap) {
+        this.code = currencyMap.get("code");
+        this.fullName = currencyMap.get("name");
+        this.sign = currencyMap.get("sign");
     }
 
     public Long getId() {
@@ -88,15 +99,15 @@ public class Currency {
                 .append("\"id\": ")
                 .append(this.id)
                 .append(",\n")
-                .append("\"name\": ")
+                .append("\"name\": \"")
                 .append(this.fullName)
-                .append(",\n")
-                .append("\"code\": ")
+                .append("\",\n")
+                .append("\"code\": \"")
                 .append(this.code)
-                .append(",\n")
-                .append("\"sign\": ")
+                .append("\",\n")
+                .append("\"sign\": \"")
                 .append(this.sign)
-                .append("\n}");
+                .append("\"\n}");
         return stringBuilder.toString();
     }
 }
