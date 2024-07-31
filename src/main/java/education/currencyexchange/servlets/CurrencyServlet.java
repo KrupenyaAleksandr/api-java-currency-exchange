@@ -4,15 +4,20 @@ import education.currencyexchange.models.Currency;
 import education.currencyexchange.repositories.CurrencyRepository;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Optional;
 
+@MultipartConfig
 @WebServlet("/currency/*")
 public class CurrencyServlet extends HttpServlet {
 
@@ -64,8 +69,13 @@ public class CurrencyServlet extends HttpServlet {
             try {
                 Optional<Currency> optCurrency = currencyRepository.findByCode(optPathInfo.get());
                 if (optCurrency.isPresent()) {
-                    Currency patchedCurrency = patchCurrency(req, optCurrency.get());
-                    currencyRepository.update(patchedCurrency.getId(), patchedCurrency);
+                    Optional<Currency> patchedCurrency = patchCurrency(req, optCurrency.get());
+                    if (patchedCurrency.isPresent()) {
+                        currencyRepository.update(patchedCurrency.get().getId(), patchedCurrency.get());
+                    }
+                    else {
+                        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request");
+                    }
                 }
                 else {
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Currency not found");
@@ -87,17 +97,61 @@ public class CurrencyServlet extends HttpServlet {
         return Optional.empty();
     }
 
-    //TODO: read parameters from inputstream
-    private Currency patchCurrency(HttpServletRequest req, Currency currency) {
-        if (!req.getParameter("name").isEmpty()) {
-            currency.setFullName(req.getParameter("name"));
+    private Optional<Currency> patchCurrency(HttpServletRequest req, Currency currency) {
+        boolean currencyWasPatched = false;
+        Optional<HashMap<String, String>> optParametersMap = readParametersForPatch(req);
+        if (optParametersMap.isPresent()) {
+            HashMap<String, String> parameterMap = optParametersMap.get();
+            if (parameterMap.containsKey("name")) {
+                currency.setFullName(parameterMap.get("name"));
+                currencyWasPatched = true;
+            }
+            if (parameterMap.containsKey("code")) {
+                if (parameterMap.get("code").length() == 3) {
+                    currency.setCode(parameterMap.get("code"));
+                    currencyWasPatched = true;
+                }
+            }
+            if (parameterMap.containsKey("sign")) {
+                currency.setSign(parameterMap.get("sign"));
+                currencyWasPatched = true;
+            }
         }
-        if (!req.getParameter("code").isEmpty()) {
-            currency.setCode(req.getParameter("code"));
+        if (!currencyWasPatched) {
+            return Optional.empty();
         }
-        if (!req.getParameter("sign").isEmpty()) {
-            currency.setSign(req.getParameter("sign"));
+        else {
+            return Optional.of(currency);
         }
-        return currency;
+    }
+
+    private Optional<HashMap<String, String>> readParametersForPatch(HttpServletRequest req) {
+        HashMap<String, String> parameters = null;
+        String query;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(req.getInputStream()))) {
+            if ((query = br.readLine()) != null) {
+                if (!query.isEmpty()) {
+                    parameters = new HashMap<>();
+                    String[] pairs = query.split("&");
+
+                    for (String pair : pairs) {
+                        String[] keyValuePairs = pair.split("=");
+                        if (keyValuePairs.length == 2) {
+                            parameters.put(keyValuePairs[0], keyValuePairs[1]);
+                        }
+                    }
+
+                    return Optional.of(parameters);
+                } else {
+                    return Optional.empty();
+                }
+            }
+            else {
+                return Optional.empty();
+            }
+        }
+        catch (IOException e) {
+            return Optional.empty();
+        }
     }
 }

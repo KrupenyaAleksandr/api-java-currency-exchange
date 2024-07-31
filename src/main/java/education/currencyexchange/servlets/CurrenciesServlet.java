@@ -70,8 +70,6 @@ public class CurrenciesServlet extends HttpServlet {
     }
 
     private Optional<HashMap<String, String>> checkParameters(HttpServletRequest req) {
-        System.out.println(req.getParameterMap().values().toString());
-        System.out.println(req.getParameterMap().keySet().toString());
         if (!req.getParameter("name").isEmpty()) {
             HashMap<String, String> parameters = new HashMap<>();
             parameters.put("name", req.getParameter("name"));
