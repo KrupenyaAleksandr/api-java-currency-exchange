@@ -12,5 +12,5 @@ public abstract class CrudRepository <T> {
     abstract Optional<T> findById(Long id) throws SQLException;
     abstract void save (T entity) throws SQLException;
     abstract void update (Long id, T entity) throws SQLException;
-    abstract void delete (Long id);
+    abstract void delete (Long id) throws SQLException;
 }

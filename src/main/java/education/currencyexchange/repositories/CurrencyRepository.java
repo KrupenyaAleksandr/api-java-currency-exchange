@@ -121,7 +121,17 @@ public class CurrencyRepository extends CrudRepository<Currency> {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id) throws SQLException {
+        final String query = "DELETE FROM currencies WHERE id = ?;";
 
+        try (Connection connection = DriverManager.getConnection(this.dataSourceProps.getProperty("url"), this.dataSourceProps)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setLong(1, id);
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw new SQLException(e.getMessage());
+            }
+        }
     }
 }

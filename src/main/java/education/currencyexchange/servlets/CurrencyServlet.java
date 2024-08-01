@@ -4,7 +4,6 @@ import education.currencyexchange.models.Currency;
 import education.currencyexchange.repositories.CurrencyRepository;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +16,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Optional;
 
-@MultipartConfig
 @WebServlet("/currency/*")
 public class CurrencyServlet extends HttpServlet {
 
@@ -41,58 +39,67 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Optional<String> optPathInfo = checkPath(req.getPathInfo());
-        if (optPathInfo.isPresent()) {
-            try {
-                Optional<Currency> optCurrency = currencyRepository.findByCode(optPathInfo.get());
-                if (optCurrency.isPresent()) {
-                    PrintWriter out = resp.getWriter();
-                    out.print(optCurrency.get().toString());
-                    out.flush();
-                }
-                else {
-                    resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Currency not found");
-                }
-            }
-            catch (SQLException e) {
-                resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Database is unavailable");
-            }
-        }
-        else {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request, example: .../currency/EUR");
+        Optional<Currency> optCurrency = checkCurrencyExists(req, resp);
+        if (optCurrency.isPresent()) {
+            PrintWriter out = resp.getWriter();
+            out.print(optCurrency.get());
+            out.flush();
         }
     }
 
-    private void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Optional<String> optPathInfo = checkPath(req.getPathInfo());
-        if (optPathInfo.isPresent()) {
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Optional<Currency> optCurrency = checkCurrencyExists(req, resp);
+        if (optCurrency.isPresent()) {
             try {
-                Optional<Currency> optCurrency = currencyRepository.findByCode(optPathInfo.get());
-                if (optCurrency.isPresent()) {
-                    Optional<Currency> patchedCurrency = patchCurrency(req, optCurrency.get());
-                    if (patchedCurrency.isPresent()) {
-                        currencyRepository.update(patchedCurrency.get().getId(), patchedCurrency.get());
-                    }
-                    else {
-                        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request");
-                    }
-                }
-                else {
-                    resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Currency not found");
-                }
-            }
-            catch (SQLException e) {
+                currencyRepository.delete(optCurrency.get().getId());
+            } catch (SQLException e) {
                 resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Database is unavailable");
             }
         }
-        else {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request, example: .../currency/EUR");
+    }
+
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Optional<Currency> optCurrency = checkCurrencyExists(req, resp);
+        if (optCurrency.isPresent()) {
+            Optional<Currency> patchedCurrency = patchCurrency(req, optCurrency.get());
+            if (patchedCurrency.isPresent()) {
+                try {
+                    currencyRepository.update(patchedCurrency.get().getId(), patchedCurrency.get());
+                } catch (SQLException e) {
+                    resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Database is unavailable");
+                }
+            } else {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request");
+            }
         }
     }
 
     private Optional<String> checkPath(String pathInfo) {
         if (pathInfo != null && !pathInfo.equals("/")) {
             return Optional.of(pathInfo.replaceFirst("/", "").toUpperCase());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Currency> checkCurrencyExists(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Optional<String> optPathInfo = checkPath(req.getPathInfo());
+        if (optPathInfo.isPresent()) {
+            try {
+                Optional<Currency> optCurrency = currencyRepository.findByCode(optPathInfo.get());
+                if (optCurrency.isPresent()) {
+                    return optCurrency;
+                }
+                else {
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Currency not found");
+                }
+            }
+            catch (SQLException e) {
+                resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Database is unavailable");
+            }
+        }
+        else {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request, example: .../currency/EUR");
         }
         return Optional.empty();
     }
@@ -108,7 +115,7 @@ public class CurrencyServlet extends HttpServlet {
             }
             if (parameterMap.containsKey("code")) {
                 if (parameterMap.get("code").length() == 3) {
-                    currency.setCode(parameterMap.get("code"));
+                    currency.setCode(parameterMap.get("code").toUpperCase());
                     currencyWasPatched = true;
                 }
             }
