@@ -66,6 +66,9 @@ public class CurrencyServlet extends HttpServlet {
             if (patchedCurrency.isPresent()) {
                 try {
                     currencyRepository.update(patchedCurrency.get().getId(), patchedCurrency.get());
+                    StringBuilder redirectURL = new StringBuilder(req.getRequestURL().substring(0, req.getRequestURL().length() - 3));
+                    redirectURL.append(patchedCurrency.get().getCode());
+                    resp.sendRedirect(redirectURL.toString());
                 } catch (SQLException e) {
                     resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Database is unavailable");
                 }
