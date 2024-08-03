@@ -1,6 +1,7 @@
 package education.currencyexchange.listeners;
 
 import education.currencyexchange.repositories.CurrencyRepository;
+import education.currencyexchange.repositories.ExchangeRateRepository;
 import education.currencyexchange.services.JSONService;
 
 import javax.servlet.ServletContext;
@@ -29,8 +30,10 @@ public class ContextListener implements ServletContextListener {
         }
 
         CurrencyRepository currencyRepository = new CurrencyRepository(dataSourceProps);
+        ExchangeRateRepository exchangeRateRepository = new ExchangeRateRepository(dataSourceProps, currencyRepository);
         JSONService jsonService = new JSONService();
         servletContext.setAttribute("currencyRepository", currencyRepository);
+        servletContext.setAttribute("exchangeRateRepository", exchangeRateRepository);
         servletContext.setAttribute("jsonService", jsonService);
     }
 }

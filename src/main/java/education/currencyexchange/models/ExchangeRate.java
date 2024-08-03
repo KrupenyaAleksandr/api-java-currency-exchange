@@ -2,6 +2,8 @@ package education.currencyexchange.models;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class ExchangeRate {
@@ -14,6 +16,13 @@ public class ExchangeRate {
     private BigDecimal rate;
 
     public ExchangeRate() {}
+
+    public ExchangeRate(ResultSet resultSet, Currency baseCurrency, Currency targetCurrency) throws SQLException {
+        this.id = resultSet.getLong("id");
+        this.baseCurrency = baseCurrency;
+        this.targetCurrency = targetCurrency;
+        this.rate = resultSet.getBigDecimal("rate");
+    }
 
     public void setId(Long id) {
         this.id = id;
