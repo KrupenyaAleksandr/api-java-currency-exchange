@@ -23,7 +23,8 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        currencyRepository = (CurrencyRepository) getServletContext().getAttribute("currencyRepository");
+        currencyRepository = (CurrencyRepository)
+                getServletContext().getAttribute("currencyRepository");
     }
 
     @Override
