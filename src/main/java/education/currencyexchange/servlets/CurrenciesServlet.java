@@ -70,12 +70,12 @@ public class CurrenciesServlet extends HttpServlet {
     }
 
     private Optional<HashMap<String, String>> checkParameters(HttpServletRequest req) {
-        if (!req.getParameter("name").isEmpty()) {
+        if (req.getParameter("name") != null && !req.getParameter("name").isEmpty()) {
             HashMap<String, String> parameters = new HashMap<>();
             parameters.put("name", req.getParameter("name"));
-            if (req.getParameter("code").length() == 3) {
+            if (req.getParameter("code") != null && req.getParameter("code").length() == 3) {
                 parameters.put("code", req.getParameter("code"));
-                if (!req.getParameter("sign").isEmpty()) {
+                if (req.getParameter("sign") != null && !req.getParameter("sign").isEmpty()) {
                     parameters.put("sign", req.getParameter("sign"));
                     return Optional.of(parameters);
                 }

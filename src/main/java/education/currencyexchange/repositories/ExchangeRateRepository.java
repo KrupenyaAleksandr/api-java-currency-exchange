@@ -86,8 +86,21 @@ public class ExchangeRateRepository extends CrudRepository<ExchangeRate> {
     }
 
     @Override
-    void save(ExchangeRate entity) throws SQLException {
+    public void save(ExchangeRate entity) throws SQLException {
+        final String query = "INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?);";
 
+        try (Connection connection = DriverManager.getConnection(this.dataSourceProps.getProperty("url"), this.dataSourceProps)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setLong(1, entity.getBaseCurrency().getId());
+                preparedStatement.setLong(2, entity.getTargetCurrency().getId());
+                preparedStatement.setBigDecimal(3, entity.getRate());
+                preparedStatement.execute();
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException(e.getMessage());
+        }
     }
 
     @Override

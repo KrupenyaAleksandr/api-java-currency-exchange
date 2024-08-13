@@ -24,6 +24,12 @@ public class ExchangeRate {
         this.rate = resultSet.getBigDecimal("rate");
     }
 
+    public ExchangeRate(Currency baseCurrency, Currency targetCurrency, BigDecimal rate) {
+        this.baseCurrency = baseCurrency;
+        this.targetCurrency = targetCurrency;
+        this.rate = rate;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
