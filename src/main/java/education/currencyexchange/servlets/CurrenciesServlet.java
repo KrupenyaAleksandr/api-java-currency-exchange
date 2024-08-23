@@ -65,7 +65,7 @@ public class CurrenciesServlet extends HttpServlet {
             }
         }
         else {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request. Missing requested field");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request");
         }
     }
 

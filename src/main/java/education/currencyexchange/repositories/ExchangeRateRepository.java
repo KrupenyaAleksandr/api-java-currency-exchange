@@ -104,8 +104,20 @@ public class ExchangeRateRepository extends CrudRepository<ExchangeRate> {
     }
 
     @Override
-    void update(Long id, ExchangeRate entity) {
+    public void update(Long id, ExchangeRate entity) throws SQLException {
+        final String query = "UPDATE exchange_rates SET rate = ? WHERE id = ?;";
 
+        try (Connection connection = DriverManager.getConnection(this.dataSourceProps.getProperty("url"), this.dataSourceProps)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setBigDecimal(1, entity.getRate());
+                preparedStatement.setLong(2, id);
+                preparedStatement.execute();
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException(e.getMessage());
+        }
     }
 
     @Override

@@ -2,15 +2,14 @@ package education.currencyexchange.servlets;
 
 import education.currencyexchange.models.Currency;
 import education.currencyexchange.repositories.CurrencyRepository;
+import education.currencyexchange.utils.Utils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -63,12 +62,12 @@ public class CurrencyServlet extends HttpServlet {
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Optional<Currency> optCurrency = checkCurrencyExists(req, resp);
         if (optCurrency.isPresent()) {
-            Optional<Currency> patchedCurrency = patchCurrency(req, optCurrency.get());
-            if (patchedCurrency.isPresent()) {
+            Optional<Currency> optPatchedCurrency = patchCurrency(req, optCurrency.get());
+            if (optPatchedCurrency.isPresent()) {
                 try {
-                    currencyRepository.update(patchedCurrency.get().getId(), patchedCurrency.get());
+                    currencyRepository.update(optPatchedCurrency.get().getId(), optPatchedCurrency.get());
                     StringBuilder redirectURL = new StringBuilder(req.getRequestURL().substring(0, req.getRequestURL().length() - 3));
-                    redirectURL.append(patchedCurrency.get().getCode());
+                    redirectURL.append(optPatchedCurrency.get().getCode());
                     resp.sendRedirect(redirectURL.toString());
                 } catch (SQLException e) {
                     resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Database is unavailable");
@@ -79,15 +78,8 @@ public class CurrencyServlet extends HttpServlet {
         }
     }
 
-    private Optional<String> checkPath(String pathInfo) {
-        if (pathInfo != null && !pathInfo.equals("/")) {
-            return Optional.of(pathInfo.replaceFirst("/", "").toUpperCase());
-        }
-        return Optional.empty();
-    }
-
     private Optional<Currency> checkCurrencyExists(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Optional<String> optPathInfo = checkPath(req.getPathInfo());
+        Optional<String> optPathInfo = Utils.checkCurrencyPath(req.getPathInfo());
         if (optPathInfo.isPresent()) {
             try {
                 Optional<Currency> optCurrency = currencyRepository.findByCode(optPathInfo.get());
@@ -110,7 +102,7 @@ public class CurrencyServlet extends HttpServlet {
 
     private Optional<Currency> patchCurrency(HttpServletRequest req, Currency currency) {
         boolean currencyWasPatched = false;
-        Optional<HashMap<String, String>> optParametersMap = readParametersForPatch(req);
+        Optional<HashMap<String, String>> optParametersMap = Utils.readParametersForPatch(req);
         if (optParametersMap.isPresent()) {
             HashMap<String, String> parameterMap = optParametersMap.get();
             if (parameterMap.containsKey("name")) {
@@ -133,36 +125,6 @@ public class CurrencyServlet extends HttpServlet {
         }
         else {
             return Optional.of(currency);
-        }
-    }
-
-    private Optional<HashMap<String, String>> readParametersForPatch(HttpServletRequest req) {
-        HashMap<String, String> parameters = null;
-        String query;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(req.getInputStream()))) {
-            if ((query = br.readLine()) != null) {
-                if (!query.isEmpty()) {
-                    parameters = new HashMap<>();
-                    String[] pairs = query.split("&");
-
-                    for (String pair : pairs) {
-                        String[] keyValuePairs = pair.split("=");
-                        if (keyValuePairs.length == 2) {
-                            parameters.put(keyValuePairs[0], keyValuePairs[1]);
-                        }
-                    }
-
-                    return Optional.of(parameters);
-                } else {
-                    return Optional.empty();
-                }
-            }
-            else {
-                return Optional.empty();
-            }
-        }
-        catch (IOException e) {
-            return Optional.empty();
         }
     }
 }
