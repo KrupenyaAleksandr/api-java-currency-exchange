@@ -23,20 +23,18 @@ public class ExchangeRatesServlet extends HttpServlet {
 
     private ExchangeRateRepository exchangeRateRepository;
     private CurrencyRepository currencyRepository;
-    private JSONService jsonService;
 
     @Override
     public void init() throws ServletException {
         exchangeRateRepository = (ExchangeRateRepository) getServletContext().getAttribute("exchangeRateRepository");
         currencyRepository = (CurrencyRepository) getServletContext().getAttribute("currencyRepository");
-        jsonService = (JSONService) getServletContext().getAttribute("jsonService");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             PrintWriter out = resp.getWriter();
-            out.print(jsonService.getAllExchangeRatesJSON(exchangeRateRepository.findAll()));
+            out.print(JSONService.getAllExchangeRatesJSON(exchangeRateRepository.findAll()));
             out.flush();
         }
         catch (SQLException e) {

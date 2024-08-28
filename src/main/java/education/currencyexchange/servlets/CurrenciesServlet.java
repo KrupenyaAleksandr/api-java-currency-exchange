@@ -19,19 +19,17 @@ import java.util.Optional;
 public class CurrenciesServlet extends HttpServlet {
 
     private CurrencyRepository currencyRepository;
-    private JSONService jsonService;
 
     @Override
     public void init() throws ServletException {
         currencyRepository = (CurrencyRepository) getServletContext().getAttribute("currencyRepository");
-        jsonService = (JSONService) getServletContext().getAttribute("jsonService");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             PrintWriter out = resp.getWriter();
-            out.print(jsonService.getAllCurrenciesJSON(currencyRepository.findAll()));
+            out.print(JSONService.getAllCurrenciesJSON(currencyRepository.findAll()));
             out.flush();
         }
         catch (SQLException e) {
